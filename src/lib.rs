@@ -1,7 +1,8 @@
+mod compress;
 mod file;
 mod utils;
 
-pub use file::File;
+// pub use file::File;
 
 use wasm_bindgen::prelude::*;
 
@@ -17,6 +18,12 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, mince!");
+pub fn greet(name: &str) {
+    alert(&format!("Hello, {}!", name));
+}
+
+#[wasm_bindgen]
+pub async fn read_file_into_bytes(f: web_sys::File) -> js_sys::Uint8Array {
+    let bytes = file::into_bytes(f).await;
+    js_sys::Uint8Array::from(bytes.as_slice())
 }

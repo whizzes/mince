@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>hello-wasm example</title>
+  </head>
+  <body>
+    <script type="module">
+      import init, { read_file_into_bytes } from "./pkg/mince.js";
+
+      init().then(() => {
+        const file = new File(["foo"], "foo.txt", {
+          type: "text/plain",
+        });
+        
+        read_file_into_bytes(file).then((bytes) => {
+          console.log(bytes);
+        });
+      });
+    </script>
+  </body>
+</html>
