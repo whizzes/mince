@@ -1,22 +1,39 @@
 <!DOCTYPE html>
 <html lang="en-US">
-  <head>
-    <meta charset="utf-8" />
-    <title>hello-wasm example</title>
-  </head>
-  <body>
-    <script type="module">
-      import init, { read_file_into_bytes } from "./pkg/mince.js";
+
+<head>
+  <meta charset="utf-8" />
+  <title>hello-wasm example</title>
+</head>
+
+<body>
+  <input type="file" id="file-input" />
+  <h3>Contents of the file:</h3>
+  <pre id="file-content"></pre>
+  <script type="module">
+    import init, { Mince } from "./pkg/mince.js";
+
+    function readSingleFile(e) {
+      var file = e.target.files[0];
+      if (!file) {
+        return;
+      }
 
       init().then(() => {
-        const file = new File(["foo"], "foo.txt", {
-          type: "text/plain",
-        });
-        
-        read_file_into_bytes(file).then((bytes) => {
-          console.log(bytes);
-        });
+        Mince.from_file(file).then((mince) => {
+          displayContents(mince.format());
+        })
       });
-    </script>
-  </body>
+    }
+
+    function displayContents(contents) {
+      var element = document.getElementById('file-content');
+      element.textContent = contents;
+    }
+
+    document.getElementById('file-input')
+      .addEventListener('change', readSingleFile, false);
+  </script>
+</body>
+
 </html>

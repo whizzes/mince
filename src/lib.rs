@@ -1,8 +1,5 @@
-mod compress;
-mod file;
+mod image;
 mod utils;
-
-// pub use file::File;
 
 use wasm_bindgen::prelude::*;
 
@@ -14,16 +11,8 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
 extern "C" {
-    fn alert(s: &str);
-}
-
-#[wasm_bindgen]
-pub fn greet(name: &str) {
-    alert(&format!("Hello, {}!", name));
-}
-
-#[wasm_bindgen]
-pub async fn read_file_into_bytes(f: web_sys::File) -> js_sys::Uint8Array {
-    let bytes = file::into_bytes(f).await;
-    js_sys::Uint8Array::from(bytes.as_slice())
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(s: &str);
 }
