@@ -8,3 +8,7 @@ Mince comes from "mincing" which means taking something that is roughly chopped 
 ```bash
 cargo install wasm-pack
 ```
+
+## Geckodriver
+
+https://github.com/rustwasm/wasm-pack/blob/master/src/test/webdriver/geckodriver.rs
