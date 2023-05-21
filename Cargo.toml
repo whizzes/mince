@@ -1,6 +1,6 @@
 [package]
 name = "mince"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Esteban Borai <estebanborai@gmail.com>"]
 edition = "2021"
 
