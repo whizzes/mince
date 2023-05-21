@@ -2,7 +2,7 @@ clean:
 	rm -rf ./pkg
 
 build: clean
-	wasm-pack build --target web --release
+	wasm-pack build --target web --release --scope whizzes
 
 dev: clean
 	wasm-pack build --target web --dev
@@ -10,4 +10,4 @@ dev: clean
 	cp -R ./pkg ./testing/pkg
 
 serve:
-	http-server --verbose --logger ./testing
+	./http-server --verbose --logger ./testing
