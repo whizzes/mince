@@ -3,10 +3,10 @@ use std::io::Cursor;
 use image::imageops::FilterType;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, ImageFormat};
-use js_sys::Uint8Array;
+use js_sys::{Array, Uint8Array};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::File;
+use web_sys::{Blob, BlobPropertyBag, File, FilePropertyBag};
 
 /// Supported image formats for `Mince`
 #[wasm_bindgen]
@@ -17,6 +17,26 @@ pub enum Format {
     Gif,
     #[default]
     Unsupported,
+}
+
+impl Format {
+    pub fn mime(&self) -> &'static str {
+        match self {
+            Format::Jpeg => "image/jpeg",
+            Format::Png => "image/png",
+            Format::Gif => "image/gif",
+            _ => "image/unsupported",
+        }
+    }
+
+    pub fn extension(&self) -> &'static str {
+        match self {
+            Format::Jpeg => "jpeg",
+            Format::Png => "png",
+            Format::Gif => "gif",
+            _ => "unsupported",
+        }
+    }
 }
 
 impl From<ImageFormat> for Format {
@@ -99,5 +119,37 @@ impl Mince {
         let dynamic_image = DynamicImage::ImageRgba8(buf);
 
         Mince::new(dynamic_image)
+    }
+
+    fn uint8_array(&self) -> Uint8Array {
+        Uint8Array::from(self.inner.as_bytes())
+    }
+
+    pub fn write_blob(&self) -> Blob {
+        let mut options = BlobPropertyBag::new();
+        options.type_(self.meta.format.mime());
+
+        let bytes = self.inner.as_bytes();
+        let uint8_array = Uint8Array::from(bytes);
+        let blob =
+            Blob::new_with_u8_array_sequence_and_options(&JsValue::from(uint8_array), &options)
+                .unwrap();
+
+        blob
+    }
+
+    pub fn write_file(&self) -> File {
+        let sequence = Array::new();
+        sequence.set(0, self.uint8_array().into());
+
+        let mut options = FilePropertyBag::new();
+
+        options.type_(self.meta.format.mime());
+
+        File::new_with_blob_sequence_and_options(&sequence, &self.filename(), &options).unwrap()
+    }
+
+    fn filename(&self) -> String {
+        format!("mince_image.{}", self.meta.format.extension())
     }
 }

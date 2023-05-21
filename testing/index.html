@@ -10,6 +10,7 @@
   <input type="file" id="file-input" />
   <h3>Contents of the file:</h3>
   <pre id="file-content"></pre>
+  <img id="image" src="" alt="" height="100" width="100" />
   <script type="module">
     import init, { Mince } from "./pkg/mince.js";
 
@@ -21,7 +22,13 @@
 
       init().then(() => {
         Mince.from_file(file).then((mince) => {
-          displayContents(mince.format());
+          let resized = mince.resize(100, 100);
+          let file = resized.write_blob();
+          let url = URL.createObjectURL(file);
+
+          document.getElementById('image').src = url;
+          console.log(url);
+          console.log(file);
         })
       });
     }
