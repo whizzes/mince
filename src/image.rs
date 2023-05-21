@@ -1,8 +1,9 @@
+use std::io::BufWriter;
 use std::io::Cursor;
 
 use image::imageops::FilterType;
 use image::io::Reader as ImageReader;
-use image::{DynamicImage, ImageFormat};
+use image::{DynamicImage, ImageFormat, ImageOutputFormat};
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
@@ -50,6 +51,17 @@ impl From<ImageFormat> for Format {
     }
 }
 
+impl Into<ImageOutputFormat> for Format {
+    fn into(self) -> ImageOutputFormat {
+        match self {
+            Format::Jpeg => ImageOutputFormat::Jpeg(100),
+            Format::Png => ImageOutputFormat::Png,
+            Format::Gif => ImageOutputFormat::Gif,
+            _ => unreachable!(),
+        }
+    }
+}
+
 /// Metadata for a `Mince` instance, which provides relevant details on the
 /// contained image instance
 #[wasm_bindgen]
@@ -81,9 +93,7 @@ pub struct Mince {
 #[wasm_bindgen]
 impl Mince {
     /// Creates a new `Mince` instance from a Image RS `DynamicImage`
-    fn new(dynamic_image: DynamicImage) -> Mince {
-        let meta = Metadata::default();
-
+    fn new(dynamic_image: DynamicImage, meta: Metadata) -> Mince {
         Self {
             inner: Box::new(dynamic_image),
             meta,
@@ -118,11 +128,20 @@ impl Mince {
         let buf = imageops::resize(self.inner.as_ref(), width, height, FilterType::Lanczos3);
         let dynamic_image = DynamicImage::ImageRgba8(buf);
 
-        Mince::new(dynamic_image)
+        Mince::new(dynamic_image, self.meta())
+    }
+
+    fn bytes(&self) -> Vec<u8> {
+        let bytes = Cursor::new(Vec::new());
+        let mut buf = BufWriter::new(bytes);
+        let format: ImageOutputFormat = self.meta.format.into();
+        self.inner.write_to(&mut buf, format).unwrap();
+
+        buf.buffer().to_vec()
     }
 
     fn uint8_array(&self) -> Uint8Array {
-        Uint8Array::from(self.inner.as_bytes())
+        Uint8Array::from(self.bytes().as_slice())
     }
 
     pub fn write_blob(&self) -> Blob {
