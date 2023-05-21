@@ -5,7 +5,7 @@ on:
       - 'v*'
 
 jobs:
-  publish:
+  Publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
@@ -28,6 +28,11 @@ jobs:
 
       - name: Build
         run: just build
+
+      - name: Set type="module" for package.json
+        run: |
+          npm i -g json
+          json -I -f ./pkg/package.json -e "this.type=\"module\""
 
       - name: Publish to NPM
         run: |
