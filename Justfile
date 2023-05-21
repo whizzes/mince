@@ -2,7 +2,7 @@ clean:
 	rm -rf ./pkg
 
 build: clean
-	wasm-pack build --release --scope whizzes
+	wasm-pack build --release --scope whizzes --target no-modules
 
 dev: clean
 	wasm-pack build --target web --dev
