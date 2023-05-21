@@ -75,7 +75,7 @@ impl Mince {
         let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
         let uint8_array = Uint8Array::new(&array_buffer);
         let inner = uint8_array.to_vec();
-        let cursor = Cursor::new(inner.clone());
+        let cursor = Cursor::new(inner);
         let reader = ImageReader::new(cursor).with_guessed_format().unwrap();
         let format = reader.format().unwrap();
         let image = reader.decode().unwrap();
