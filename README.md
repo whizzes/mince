@@ -1,6 +1,8 @@
 # mince
 Mince comes from "mincing" which means taking something that is roughly chopped and then chopping it finely
 
+> **Warning** This package is under heavy development
+
 ## Development
 
 1. Install `wasm-pack`

@@ -1,4 +1,3 @@
-use std::io::BufWriter;
 use std::io::Cursor;
 
 use image::imageops::FilterType;
@@ -131,19 +130,6 @@ impl Mince {
         Mince::new(dynamic_image, self.meta())
     }
 
-    fn bytes(&self) -> Vec<u8> {
-        let bytes = Cursor::new(Vec::new());
-        let mut buf = BufWriter::new(bytes);
-        let format: ImageOutputFormat = self.meta.format.into();
-        self.inner.write_to(&mut buf, format).unwrap();
-
-        buf.buffer().to_vec()
-    }
-
-    fn uint8_array(&self) -> Uint8Array {
-        Uint8Array::from(self.bytes().as_slice())
-    }
-
     pub fn write_blob(&self) -> Blob {
         let mut options = BlobPropertyBag::new();
         options.type_(self.meta.format.mime());
@@ -159,7 +145,7 @@ impl Mince {
 
     pub fn write_file(&self) -> File {
         let sequence = Array::new();
-        sequence.set(0, self.uint8_array().into());
+        sequence.set(0, self.write_blob().into());
 
         let mut options = FilePropertyBag::new();
 
