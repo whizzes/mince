@@ -1,6 +1,6 @@
-mod error;
-mod image;
-mod utils;
+pub mod error;
+pub mod image;
+pub mod utils;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
