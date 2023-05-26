@@ -8,6 +8,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Blob, BlobPropertyBag, File, FilePropertyBag};
 
+use crate::console;
+use crate::error::{Error, Result};
+
 /// Supported image formats for `Mince`
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -100,20 +103,26 @@ impl Mince {
     }
 
     /// Reads a browser file into a `Mince` instance
-    pub async fn from_file(file: File) -> Mince {
-        let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
-        let uint8_array = Uint8Array::new(&array_buffer);
-        let inner = uint8_array.to_vec();
-        let cursor = Cursor::new(inner);
-        let reader = ImageReader::new(cursor).with_guessed_format().unwrap();
-        let format = reader.format().unwrap();
-        let image = reader.decode().unwrap();
+    pub async fn from_file(file: File) -> Result<Mince> {
+        let bytes = Self::file_bytes(file).await?;
+        let cursor = Cursor::new(bytes);
+        let reader = ImageReader::new(cursor)
+            .with_guessed_format()
+            .map_err(|err| {
+                console::error(&format!("Error reading file: {:?}", err));
+                Error::FileRead
+            })?;
+        let format = reader.format().ok_or(Error::DetectImageFormat)?;
+        let image = reader.decode().map_err(|err| {
+            console::error(&format!("Error decoding file: {:?}", err));
+            Error::DecodeImage
+        })?;
         let meta = Metadata::new(image.width(), image.height(), format.into());
 
-        Self {
+        Ok(Self {
             inner: Box::new(image),
             meta,
-        }
+        })
     }
 
     pub fn meta(&self) -> Metadata {
@@ -156,5 +165,38 @@ impl Mince {
 
     fn filename(&self) -> String {
         format!("mince_image.{}", self.meta.format.extension())
+    }
+
+    /// Reads a browser file and returns a `Vec<u8>` containing the bytes
+    async fn file_bytes(file: File) -> Result<Vec<u8>> {
+        let array_buffer = JsFuture::from(file.array_buffer()).await.map_err(|err| {
+            console::error(&format!("Error reading file: {:?}", err));
+            Error::FileRead
+        })?;
+        let uint8_array = Uint8Array::new(&array_buffer);
+        let bytes = uint8_array.to_vec();
+
+        Ok(bytes)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_mime() {
+        assert_eq!(Format::Jpeg.mime(), "image/jpeg");
+        assert_eq!(Format::Png.mime(), "image/png");
+        assert_eq!(Format::Gif.mime(), "image/gif");
+        assert_eq!(Format::Unsupported.mime(), "image/unsupported");
+    }
+
+    #[test]
+    fn test_format_extension() {
+        assert_eq!(Format::Jpeg.extension(), "jpeg");
+        assert_eq!(Format::Png.extension(), "png");
+        assert_eq!(Format::Gif.extension(), "gif");
+        assert_eq!(Format::Unsupported.extension(), "unsupported");
     }
 }

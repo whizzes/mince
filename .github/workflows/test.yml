@@ -1,0 +1,28 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  Test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v2
+
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Just Command Runner
+        uses: extractions/setup-just@v1
+
+      - name: Install Wasm Pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Tests
+        run: just test

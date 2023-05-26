@@ -11,3 +11,6 @@ dev: clean
 
 serve:
 	./http-server --verbose --logger ./testing
+
+test:
+	wasm-pack test --headless --firefox --geckodriver ./drivers/geckodriver
