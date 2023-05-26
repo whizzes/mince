@@ -14,3 +14,6 @@ serve:
 
 test:
 	wasm-pack test --headless --firefox --geckodriver ./drivers/geckodriver
+
+test_ci:
+	wasm-pack test --headless --firefox

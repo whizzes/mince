@@ -8,18 +8,19 @@ on:
     branches:
       - main
 
+concurrency:
+  group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
+  cancel-in-progress: true
+
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v2
 
       - name: Setup Rust Cache
         uses: Swatinem/rust-cache@v2
-
-      - name: Install Just Command Runner
-        uses: extractions/setup-just@v1
 
       - name: Install Wasm Pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -28,13 +29,17 @@ jobs:
         run: cargo test
 
   test_wasm:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v2
 
       - name: Setup Rust Cache
         uses: Swatinem/rust-cache@v2
+
+      - uses: browser-actions/setup-geckodriver@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Just Command Runner
         uses: extractions/setup-just@v1
@@ -43,4 +48,4 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Tests
-        run: just test
+        run: just test_ci
