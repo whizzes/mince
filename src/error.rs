@@ -2,11 +2,11 @@ use thiserror::Error;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, MinceError>;
 
 #[wasm_bindgen]
 #[derive(Debug, Error)]
-pub enum Error {
+pub enum MinceError {
     #[error("IO error")]
     Generic,
     #[error("Failed to read file into bytes")]
@@ -17,7 +17,7 @@ pub enum Error {
     DecodeImage,
 }
 
-impl Into<JsValue> for Error {
+impl Into<JsValue> for MinceError {
     fn into(self) -> JsValue {
         JsValue::from_str(&self.to_string())
     }

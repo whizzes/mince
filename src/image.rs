@@ -6,10 +6,10 @@ use image::{DynamicImage, ImageFormat, ImageOutputFormat};
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Blob, BlobPropertyBag, File, FilePropertyBag};
+use web_sys::{File, FilePropertyBag};
 
 use crate::console;
-use crate::error::{Error, Result};
+use crate::error::{MinceError, Result};
 
 /// Supported image formats for `Mince`
 #[wasm_bindgen]
@@ -110,12 +110,12 @@ impl Mince {
             .with_guessed_format()
             .map_err(|err| {
                 console::error(&format!("Error reading file: {:?}", err));
-                Error::FileRead
+                MinceError::FileRead
             })?;
-        let format = reader.format().ok_or(Error::DetectImageFormat)?;
+        let format = reader.format().ok_or(MinceError::DetectImageFormat)?;
         let image = reader.decode().map_err(|err| {
             console::error(&format!("Error decoding file: {:?}", err));
-            Error::DecodeImage
+            MinceError::DecodeImage
         })?;
         let meta = Metadata::new(image.width(), image.height(), format.into());
 
@@ -139,44 +139,41 @@ impl Mince {
         Mince::new(dynamic_image, self.meta())
     }
 
-    pub fn write_blob(&self) -> Blob {
-        let mut options = BlobPropertyBag::new();
-        options.type_(self.meta.format.mime());
-
-        let bytes = self.inner.as_bytes();
-        let uint8_array = Uint8Array::from(bytes);
-        let blob =
-            Blob::new_with_u8_array_sequence_and_options(&JsValue::from(uint8_array), &options)
-                .unwrap();
-
-        blob
-    }
-
-    pub fn write_file(&self) -> File {
-        let sequence = Array::new();
-        sequence.set(0, self.write_blob().into());
-
-        let mut options = FilePropertyBag::new();
-
-        options.type_(self.meta.format.mime());
-
-        File::new_with_blob_sequence_and_options(&sequence, &self.filename(), &options).unwrap()
-    }
-
-    fn filename(&self) -> String {
-        format!("mince_image.{}", self.meta.format.extension())
+    pub fn encode(&self) -> File {
+        Self::write_file(
+            &self.inner.as_bytes(),
+            &self.filename(),
+            self.meta.format.mime(),
+        )
     }
 
     /// Reads a browser file and returns a `Vec<u8>` containing the bytes
     async fn file_bytes(file: File) -> Result<Vec<u8>> {
         let array_buffer = JsFuture::from(file.array_buffer()).await.map_err(|err| {
             console::error(&format!("Error reading file: {:?}", err));
-            Error::FileRead
+            MinceError::FileRead
         })?;
         let uint8_array = Uint8Array::new(&array_buffer);
         let bytes = uint8_array.to_vec();
 
         Ok(bytes)
+    }
+
+    pub(crate) fn write_file(bytes: &[u8], filename: &str, mime: &str) -> File {
+        // Prepare a Blob from the file bytes
+        let uint8_array = Uint8Array::from(bytes);
+        let sequence = Array::new();
+        sequence.push(&uint8_array.buffer());
+
+        let mut file_options = FilePropertyBag::new();
+        file_options.type_(mime);
+
+        File::new_with_blob_sequence_and_options(&sequence, filename, &file_options)
+            .expect("Failed to create File from Blob")
+    }
+
+    fn filename(&self) -> String {
+        format!("mince_image.{}", self.meta.format.extension())
     }
 }
 

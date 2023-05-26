@@ -3,18 +3,21 @@
 
 mod utils;
 
-use std::env::current_dir;
-use std::path::PathBuf;
-
 use wasm_bindgen_test::*;
 
-const JPEG_420_EFIX: &[u8; 768608] = include_bytes!("../assets/jpeg420exif.jpg");
+use mince::image::Mince;
+
+use utils::{read_file, JPEG_420_EFIX};
 
 wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-fn pass() {
-    let file = utils::read_file(JPEG_420_EFIX, "image/jpeg");
+async fn reads_file_metadata() {
+    let file = read_file(JPEG_420_EFIX, "image/jpeg");
+    let mince = Mince::from_file(file).await.unwrap();
+    let meta = mince.meta();
 
-    assert_eq!(1 + 1, 2);
+    assert_eq!(meta.width, 2048);
+    assert_eq!(meta.height, 1536);
+    assert_eq!(meta.format, mince::image::Format::Jpeg);
 }

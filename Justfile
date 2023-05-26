@@ -10,7 +10,7 @@ dev: clean
 	cp -R ./pkg ./testing/pkg
 
 serve:
-	./http-server --verbose --logger ./testing
+	./http-server --verbose --logger ./www
 
 test:
 	wasm-pack test --headless --firefox --geckodriver ./drivers/geckodriver
