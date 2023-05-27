@@ -1,6 +1,6 @@
 [package]
 name = "mince"
-version = "0.0.6"
+version = "0.0.7"
 authors = ["Esteban Borai <estebanborai@gmail.com>"]
 edition = "2021"
 
@@ -11,9 +11,11 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
+anyhow = "1.0.71"
 image = "0.24.6"
 js-sys = "0.3.61"
-wasm-bindgen = "0.2.84"
+thiserror = "1.0.40"
+wasm-bindgen = "0.2.86"
 wasm-bindgen-futures = "0.4.34"
 web-sys = { version = "0.3.61", features = ["Blob", "BlobPropertyBag", "Event", "File", "FileReader", "FilePropertyBag"] }
 
@@ -27,7 +29,6 @@ console_error_panic_hook = { version = "0.1.6", optional = true }
 # compared to the default allocator's ~10K. It is slower than the default
 # allocator, however.
 wee_alloc = { version = "0.4.5", optional = true }
-anyhow = "1.0.71"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"

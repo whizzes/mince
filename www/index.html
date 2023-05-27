@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8" />
+  <title>hello-wasm example</title>
+</head>
+
+<body>
+  <input type="file" id="file-input" />
+  <h3>Contents of the file:</h3>
+  <pre id="file-content"></pre>
+  <img id="image" src="" alt="" height="100" width="100" />
+  <script type="module">
+    import init, { Mince } from "./pkg/mince.js";
+
+    function readSingleFile(e) {
+      var file = e.target.files[0];
+      if (!file) {
+        return;
+      }
+
+      init().then(() => {
+        Mince.from_file(file).then((mince) => {
+          let resized = mince.resize(100, 100);
+          let file = resized.write_blob();
+          let url = URL.createObjectURL(file);
+
+          document.getElementById('image').src = url;
+          console.log(url);
+          console.log(file);
+        })
+      });
+    }
+
+    function displayContents(contents) {
+      var element = document.getElementById('file-content');
+      element.textContent = contents;
+    }
+
+    document.getElementById('file-input')
+      .addEventListener('change', readSingleFile, false);
+  </script>
+</body>
+
+</html>

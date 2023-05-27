@@ -1,7 +1,6 @@
-mod image;
-mod utils;
-
-use wasm_bindgen::prelude::*;
+pub mod error;
+pub mod image;
+pub mod utils;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -9,10 +8,15 @@ use wasm_bindgen::prelude::*;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-#[wasm_bindgen]
-extern "C" {
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
-    #[wasm_bindgen(js_namespace = console)]
-    pub fn log(s: &str);
+pub mod console {
+    use wasm_bindgen::prelude::*;
+
+    #[wasm_bindgen]
+    extern "C" {
+        #[wasm_bindgen(js_namespace = console)]
+        pub fn log(s: &str);
+
+        #[wasm_bindgen(js_namespace = console)]
+        pub fn error(s: &str);
+    }
 }
