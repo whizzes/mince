@@ -15,6 +15,8 @@ pub enum MinceError {
     DetectImageFormat,
     #[error("Failed to decode image")]
     DecodeImage,
+    #[error("Failed to encode image")]
+    EncodeImage,
 }
 
 impl Into<JsValue> for MinceError {

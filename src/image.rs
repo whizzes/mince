@@ -72,15 +72,17 @@ pub struct Metadata {
     pub width: u32,
     pub height: u32,
     pub format: Format,
+    pub size: u64,
 }
 
 #[wasm_bindgen]
 impl Metadata {
-    pub fn new(width: u32, height: u32, format: Format) -> Self {
+    pub fn new(width: u32, height: u32, format: Format, size: u64) -> Self {
         Self {
             width,
             height,
             format,
+            size,
         }
     }
 }
@@ -105,6 +107,7 @@ impl Mince {
     /// Reads a browser file into a `Mince` instance
     pub async fn from_file(file: File) -> Result<Mince> {
         let bytes = Self::file_bytes(file).await?;
+        let size = bytes.len() as u64;
         let cursor = Cursor::new(bytes);
         let reader = ImageReader::new(cursor)
             .with_guessed_format()
@@ -117,7 +120,7 @@ impl Mince {
             console::error(&format!("Error decoding file: {:?}", err));
             MinceError::DecodeImage
         })?;
-        let meta = Metadata::new(image.width(), image.height(), format.into());
+        let meta = Metadata::new(image.width(), image.height(), format.into(), size);
 
         Ok(Self {
             inner: Box::new(image),
@@ -139,12 +142,17 @@ impl Mince {
         Mince::new(dynamic_image, self.meta())
     }
 
-    pub fn encode(&self) -> File {
-        Self::write_file(
-            &self.inner.as_bytes(),
-            &self.filename(),
-            self.meta.format.mime(),
-        )
+    pub fn to_file(&self) -> Result<File> {
+        let format = self.meta.format;
+        let mut bytes: Vec<u8> = Vec::with_capacity(self.meta.size as usize);
+        let mut buf = Cursor::new(&mut bytes);
+
+        self.inner.write_to(&mut buf, format).map_err(|err| {
+            console::error(&format!("Error encoding image: {:?}", err));
+            MinceError::EncodeImage
+        })?;
+
+        Ok(Self::write_file(&bytes, &self.filename(), format.mime()))
     }
 
     /// Reads a browser file and returns a `Vec<u8>` containing the bytes
@@ -160,7 +168,6 @@ impl Mince {
     }
 
     pub(crate) fn write_file(bytes: &[u8], filename: &str, mime: &str) -> File {
-        // Prepare a Blob from the file bytes
         let uint8_array = Uint8Array::from(bytes);
         let sequence = Array::new();
         sequence.push(&uint8_array.buffer());
