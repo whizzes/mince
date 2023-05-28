@@ -105,6 +105,7 @@ impl Mince {
     }
 
     /// Reads a browser file into a `Mince` instance
+    #[wasm_bindgen(js_name = fromFile)]
     pub async fn from_file(file: File) -> Result<Mince> {
         let bytes = Self::file_bytes(file).await?;
         let size = bytes.len() as u64;
@@ -142,6 +143,7 @@ impl Mince {
         Mince::new(dynamic_image, self.meta())
     }
 
+    #[wasm_bindgen(js_name = toFile)]
     pub fn to_file(&self) -> Result<File> {
         let format = self.meta.format;
         let mut bytes: Vec<u8> = Vec::with_capacity(self.meta.size as usize);
@@ -167,7 +169,7 @@ impl Mince {
         Ok(bytes)
     }
 
-    pub(crate) fn write_file(bytes: &[u8], filename: &str, mime: &str) -> File {
+    fn write_file(bytes: &[u8], filename: &str, mime: &str) -> File {
         let uint8_array = Uint8Array::from(bytes);
         let sequence = Array::new();
         sequence.push(&uint8_array.buffer());
