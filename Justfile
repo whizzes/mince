@@ -6,8 +6,8 @@ build: clean
 
 dev: clean
 	wasm-pack build --target web --dev
-	rm -rf ./testing/pkg
-	cp -R ./pkg ./testing/pkg
+	rm -rf ./www/pkg
+	cp -R ./pkg ./www/pkg
 
 serve:
 	./http-server --verbose --logger ./www

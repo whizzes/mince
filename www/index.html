@@ -21,9 +21,9 @@
       }
 
       init().then(() => {
-        Mince.from_file(file).then((mince) => {
+        Mince.fromFile(file).then((mince) => {
           let resized = mince.resize(100, 100);
-          let file = resized.write_blob();
+          let file = resized.toFile();
           let url = URL.createObjectURL(file);
 
           document.getElementById('image').src = url;
